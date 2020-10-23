@@ -9,6 +9,7 @@ export interface ReactiveEffectOptions {
   onTrack?: (event: any) => void;
   onTrigger?: (event: any) => void;
   onStop?: () => void;
+  scheduler?: (job: ReactiveEffect) => void;
 }
 
 export interface ReactiveEffect<T = any> {
@@ -97,6 +98,12 @@ export const trigger = (target: object, key: unknown) => {
   const effects = depsMap.get(key);
 
   if (effects) {
-    effects.forEach((eff) => eff());
+    effects.forEach((eff) => {
+      if (eff.options.scheduler) {
+        eff.options.scheduler(eff);
+      } else {
+        eff();
+      }
+    });
   }
 };

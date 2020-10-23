@@ -2,8 +2,13 @@ import { render } from "./runtime-core/renderer";
 import { reactive } from "./reactivity/reactivity";
 import { effect } from "./reactivity/effect";
 import { VNode } from "./types";
+import { ref } from "./reactivity/ref";
+import { computed } from "./reactivity/computed";
 
 const state = reactive({ name: "tqh", age: 26 });
+
+const refValue = ref(1);
+const computedValue = computed(() => state.age + 2);
 
 const customCom = {
   setup(props, context) {
@@ -29,15 +34,13 @@ effect(() => {
       {
         tag: "p",
         props: {
-          style: { color: "red" },
+          style: { color: "blue" },
           onClick: () => {
-            state.name = "ttt";
+            state.age++;
+            refValue.value = refValue.value + 1;
           },
         },
-        children: "姓名：" + state.name,
-      },
-      {
-        tag: customCom,
+        children: `ref = ${refValue.value}  , computedValue = ${computedValue.value}`,
       },
     ],
   };
