@@ -2,7 +2,11 @@ import { RendererOptions } from "../types";
 
 const nodeOps: Omit<RendererOptions<Node, Element>, "patchProp"> = {
   insert: (child, parent, anchor) => {
-    parent.insertBefore(child, anchor || null);
+    if (anchor) {
+      parent.insertBefore(child, anchor);
+    } else {
+      parent.appendChild(child);
+    }
   },
 
   remove: (child) => {

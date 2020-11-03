@@ -1,7 +1,7 @@
 import { RendererOptions } from "../types";
 
 const onRE = /^on[^a-z]/;
-type Style = Record<string, string | string[]>;
+type Style = Record<string, string>;
 
 type DOMRendererOptions = RendererOptions<Node, Element>;
 
@@ -9,31 +9,72 @@ type DOMRendererOptions = RendererOptions<Node, Element>;
 const isOn = (key: string) => onRE.test(key);
 
 // 给元素绑定样式
-const patchStyle = (el: Element, style: Style) => {
-  for (const key in style) {
-    (el as HTMLElement).style[key] = style[key];
+const patchStyle = (el: Element, prev: Style, next: Style) => {
+  const style = (el as HTMLElement).style;
+
+  if (!next) {
+    el.removeAttribute("style");
+  } else if (typeof next === "string") {
+    if (prev !== next) {
+      style.cssText = next;
+    }
+  } else {
+    for (const key in next) {
+      style.setProperty(key, next[key]);
+    }
+
+    if (prev) {
+      for (const key in prev) {
+        if (next[key] == null) {
+          style.setProperty(key, "");
+        }
+      }
+    }
   }
 };
 
+// 绑定class
+const patchClass = (el: Element, value: string | null) => {
+  if (value == null) {
+    value = "";
+  }
+
+  el.className = value;
+};
+
 // 给元素添加事件
-const patchEvent = (el: Element, rawName: string, handle: EventListener) => {
+const patchEvent = (
+  el: Element,
+  rawName: string,
+  prevValue: EventListener,
+  nextValue: EventListener
+) => {
   // 比如 rawName 等于 onClick
   // 那么 rawName.slice(2) 等于Click
   const eventName = rawName.slice(2).toLowerCase();
-  el.addEventListener(eventName, handle);
+  prevValue && el.removeEventListener(eventName, prevValue);
+  nextValue && el.addEventListener(eventName, nextValue);
 };
 
 // 根据props，做对应的操作
-const hostPatchProp: DOMRendererOptions["patchProp"] = (el, key, value) => {
+const hostPatchProp: DOMRendererOptions["patchProp"] = (
+  el,
+  key,
+  oldValue,
+  newValue
+) => {
   switch (key) {
     case "style":
-      patchStyle(el, value);
+      patchStyle(el, oldValue, newValue);
       break;
+    case "class":
+      patchClass(el, newValue);
     default:
       if (isOn(key)) {
-        patchEvent(el, key, value);
+        patchEvent(el, key, oldValue, newValue);
       } else {
-        el.setAttribute(key, value);
+        // id  data-xxx
+        el.setAttribute(key, newValue);
       }
       break;
   }

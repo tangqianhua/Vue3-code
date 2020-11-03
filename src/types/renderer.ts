@@ -22,5 +22,5 @@ export interface RendererOptions<
   createText(text: string): HostNode;
   setElementText(node: HostElement, text: string): void;
   querySelector(selector: string): HostElement | null;
-  patchProp(el: HostElement, key: string, value: any): void;
+  patchProp(el: HostElement, key: string, prevValue: any, nextValue: any): void;
 }

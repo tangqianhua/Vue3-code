@@ -4,6 +4,7 @@ export interface VNode {
   tag: String | Object | Function | null;
   props?: { [key: string]: any };
   children?: VNodeNormalizedChildren;
+  key?: any;
   el?: { [key: string]: any } | null;
 }
 
