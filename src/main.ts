@@ -1,9 +1,23 @@
 import { render } from "./runtime-core/renderer";
-import { reactive } from "./reactivity/reactivity";
-import { effect } from "./reactivity/effect";
 import { VNode } from "./types";
-import { ref } from "./reactivity/ref";
-import { computed } from "./reactivity/computed";
+
+// children: [
+//   { tag: "li", props: {}, children: "a", key: "a" },
+//   { tag: "li", props: {}, children: "b", key: "b" },
+//   { tag: "li", props: {}, children: "c", key: "c" },
+//   { tag: "li", props: {}, children: "d", key: "d" },
+//   { tag: "li", props: {}, children: "e", key: "e" },
+//   { tag: "li", props: {}, children: "f", key: "f" },
+// ],
+
+// ,
+//     children: [
+//       { tag: "li", props: {}, children: "a", key: "a" },
+//       { tag: "li", props: {}, children: "d", key: "d" },
+//       { tag: "li", props: {}, children: "b", key: "b" },
+//       { tag: "li", props: {}, children: "e", key: "e" },
+//       { tag: "li", props: {}, children: "c", key: "c" },
+//     ],
 
 let vnode: VNode = {
   tag: "ul",
@@ -22,7 +36,6 @@ let vnode: VNode = {
     { tag: "li", props: {}, children: "c", key: "c" },
     { tag: "li", props: {}, children: "d", key: "d" },
     { tag: "li", props: {}, children: "e", key: "e" },
-    { tag: "li", props: {}, children: "f", key: "f" },
   ],
 };
 
@@ -33,19 +46,20 @@ setTimeout(() => {
     tag: "ul",
     props: {
       style: {
-        color: "blue",
+        color: "red",
       },
       onClick: () => {
         console.log(2);
       },
-      class: "test1",
+      class: "test2",
     },
     children: [
       { tag: "li", props: {}, children: "a", key: "a" },
-      { tag: "li", props: {}, children: "d", key: "d" },
-      { tag: "li", props: {}, children: "b", key: "b" },
-      { tag: "li", props: {}, children: "e", key: "e" },
       { tag: "li", props: {}, children: "c", key: "c" },
+      { tag: "li", props: {}, children: "b", key: "b" },
+      { tag: "li", props: {}, children: "d", key: "d" },
+      { tag: "li", props: {}, children: "f", key: "f" },
+      { tag: "li", props: {}, children: "e", key: "e" },
     ],
   };
 

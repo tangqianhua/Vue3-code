@@ -12,17 +12,21 @@ const isOn = (key: string) => onRE.test(key);
 const patchStyle = (el: Element, prev: Style, next: Style) => {
   const style = (el as HTMLElement).style;
 
+  //  如果没有新属性，那就要移除来的style
   if (!next) {
     el.removeAttribute("style");
   } else if (typeof next === "string") {
+    // 比如 next = "color: red; fontSize: 12px"
     if (prev !== next) {
       style.cssText = next;
     }
   } else {
+    // 新属性为object的时候
     for (const key in next) {
       style.setProperty(key, next[key]);
     }
 
+    // 当老的属性不存在新的属性里面，就要移除老属性
     if (prev) {
       for (const key in prev) {
         if (next[key] == null) {

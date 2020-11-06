@@ -49,6 +49,7 @@ const mountElement = (
 ) => {
   const { tag, props, children } = vnode;
 
+  // 存储el,赋值给vnode.el
   let el = (vnode.el = nodeOps.createElement(tag));
 
   if (Array.isArray(children)) {
@@ -92,7 +93,7 @@ const patchElement = (
   container: RendererElement,
   anchor: RendererNode | null
 ) => {
-  // 第二次渲染的时候，才会执行diff，el是在第一次渲染的时候赋值的
+  // 第二次渲染的时候，才会执行diff，vnode上面的el是在第一次渲染的时候赋值的
   const el = (n2.el = n1.el!);
 
   const oldProps = n1.props || {};
@@ -129,8 +130,8 @@ const patchProps = (
 };
 
 const patchChildren = (n1: VNode, n2: VNode, el: RendererElement) => {
-  const c1 = n1 && n1.children;
-  const c2 = n2.children;
+  const c1 = n1.children || "";
+  const c2 = n2.children || "";
 
   if (typeof c2 === "string") {
     if (Array.isArray(c1)) {
@@ -146,8 +147,14 @@ const patchChildren = (n1: VNode, n2: VNode, el: RendererElement) => {
   } else if (typeof c1 === "string") {
     setElementText(el, "");
     c2 && mountChildren(c2, el, null);
-  } else {
-    patchKeyedChildren(c1! as VNode[], c2!, el);
+  } else if (Array.isArray(c1) && Array.isArray(c2)) {
+    const c1HasKey = c1.every((c) => !!(c as VNode).key);
+    const c2HasKey = c2.every((c) => !!(c as VNode).key);
+    if (c1HasKey && c2HasKey) {
+      patchKeyedChildren(c1! as VNode[], c2!, el);
+    } else {
+      patchUnKeyedChildren(c1! as VNode[], c2!, el);
+    }
   }
 };
 
@@ -201,7 +208,7 @@ const patchKeyedChildren = (
   }
 
   /**
-   * 执行到这一步的时候，说明已经掐头去尾了，所以要对中间的部分做处理
+   * 执行到这一步的时候，说明已经掐头去尾了
    * 如果 i > e1, 说明新节点比老的多，所以要挂载新节点
    */
   if (i > e1) {
@@ -256,7 +263,6 @@ const patchKeyedChildren = (
     for (let index = s1; index <= e1; index++) {
       const oldVNode = c1[index] as VNode;
       const newIndex = keyToNewIndexMap.get(oldVNode.key);
-
       // 如果找不到，当前的key对应的虚拟节点，只存在老的节点中，不存在新的节点里面，就要移除老节点
       if (newIndex === undefined) {
         nodeOps.remove(oldVNode.el as Node);
@@ -271,9 +277,6 @@ const patchKeyedChildren = (
     // 获取最长递增序列
     const increasingNewIndexSequence = getSequence(newIndexToOldIndexMap);
     let j = increasingNewIndexSequence.length - 1;
-
-    console.log(newIndexToOldIndexMap);
-    console.log(increasingNewIndexSequence);
 
     // 从后向前遍历
     for (let ii = toBePatched - 1; ii >= 0; ii--) {
@@ -293,6 +296,36 @@ const patchKeyedChildren = (
         }
       }
     }
+  }
+};
+
+const patchUnKeyedChildren = (
+  c1: VNode[],
+  c2: VNodeArrayChildren,
+  container: RendererElement
+) => {
+  c1 = c1 || [];
+  c2 = c2 || [];
+  const oldLength = c1.length;
+  const newLength = c2.length;
+  // 取新老节点最小的长度
+  const commonLength = Math.min(oldLength, newLength);
+  let i;
+
+  // 遍历公共的节点，进行patch
+  for (i = 0; i < commonLength; i++) {
+    const nextChild = c2[i] as VNode;
+    patch(c1[i], nextChild, container, null);
+  }
+
+  // 如果老节点大于新节点，就移除多余的老节点
+  if (oldLength > newLength) {
+    for (let i = commonLength; i < c1.length; i++) {
+      nodeOps.remove(c1[i].el as Node);
+    }
+  } else {
+    // 否则就挂载没有patch过的新的节点
+    mountChildren(c2.slice(commonLength), container, null);
   }
 };
 
